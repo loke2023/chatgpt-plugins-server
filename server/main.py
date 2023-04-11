@@ -3,6 +3,9 @@ import uvicorn
 from fastapi import FastAPI, File, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+from services.openai import get_chat_completion_for_prompt
+from services.openai import get_chat_completion
+from services.openai import construct_prompt, construct_prompt_tips
 
 from models.api import (
     DeleteRequest,
@@ -18,8 +21,8 @@ from services.file import get_document_from_file
 bearer_scheme = HTTPBearer()
 os.environ['DATASTORE'] = 'milvus'
 os.environ['BEARER_TOKEN'] = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-os.environ['OPENAI_API_KEY'] = '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'
-os.environ['OPENAI_API_BASE'] = 'https://ai.mexxxxai.win/v1'
+os.environ['OPENAI_API_KEY'] = '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'
+os.environ['OPENAI_API_BASE'] = 'https://api.openai.com/v1'
 os.environ['MILVUS_HOST'] = '8.134.70.20'
 os.environ['MILVUS_PORT'] = '19530'
 os.environ['MILVUS_COLLECTION'] = 'lishiwenxueku'
@@ -79,6 +82,63 @@ async def upsert(
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
+@app.post(
+    "/embedding_chat",
+    response_model=str,
+)
+async def embedding_chat(
+    request: QueryRequest = Body(...),
+):
+    try:
+        results = await datastore.query(
+            request.queries,
+        )
+
+        same_thins = construct_prompt(results)
+        print("same_thins:")
+        print(same_thins)
+
+        chat_ret = get_chat_completion_for_prompt(same_thins, request.queries[0].query)
+        print("chat_ret:")
+        print(chat_ret)
+
+        return chat_ret
+    
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+@app.post(
+    "/rewrite_manuscript",
+    response_model=str,
+)
+async def rewrite_manuscript(
+    request: QueryRequest = Body(...),
+):
+    try:
+        print("收到洗稿请求:")
+        print(request.queries[0].query)
+
+        results = await datastore.query(
+            request.queries,
+        )
+
+        print("开始整理提示词 prompt, results:")
+        print(results)
+
+        same_thins = construct_prompt_tips(results, "作家", request.queries[0].query)
+        print("rewrite_manuscript same_thins:")
+        print(same_thins)
+
+        chat_ret = get_chat_completion([{"role":"user", "content":same_thins}])
+        print("rewrite_manuscript chat_ret:")
+        print(chat_ret)
+
+        return chat_ret
+    
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
 
 @app.post(
     "/query",
@@ -91,6 +151,7 @@ async def query_main(
         results = await datastore.query(
             request.queries,
         )
+        print(results)
         return QueryResponse(results=results)
     except Exception as e:
         print("Error:", e)

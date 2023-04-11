@@ -111,7 +111,7 @@ async def query_main(
         )
         return QueryResponse(results=results)
     except Exception as e:
-        print("Error:", e)
+        print("query Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
