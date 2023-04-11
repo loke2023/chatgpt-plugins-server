@@ -1,6 +1,7 @@
 from typing import List
 import openai
 from models.models import ChatCompletionMessage
+import os
 
 
 from tenacity import retry, wait_random_exponential, stop_after_attempt
@@ -19,9 +20,10 @@ def get_embeddings(texts: List[str]) -> List[List[float]]:
 
     Raises:
         Exception: If the OpenAI API call fails.
-    """
+    """ 
+ 
     # Call the OpenAI API to get the embeddings
-    response = openai.Embedding.create(input=texts, model="text-embedding-ada-002")
+    response = openai.Embedding.create(input=texts, model="text-embedding-ada-002") 
 
     # Extract the embedding data from the response
     data = response["data"]  # type: ignore
@@ -153,7 +155,7 @@ def construct_prompt_tips(context_embeddings, role, msg) -> str:
     chosen_ret = get_chat_completion(chosen_sections)
             
     print("tips chosen_sections:{}, chosen_ret:{}".format(chosen_sections, chosen_ret))
-    result = """你是一个{}，你拥有非常多的知识，我现在给你一些提示如下: \n{}, 
-        请帮我重写下面这段内容：{}""".format(role, chosen_ret, msg)
+    result = """你是一个{}，你拥有非常多的知识，我现在给你一些提示如下: \n{}, \n\n
+    请帮我重写下面这段内容：{}""".format(role, chosen_ret, msg)
     
     return result

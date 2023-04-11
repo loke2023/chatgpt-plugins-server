@@ -19,6 +19,11 @@ class UpsertResponse(BaseModel):
 class QueryRequest(BaseModel):
     queries: List[Query]
 
+    
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 
 class QueryResponse(BaseModel):
     results: List[QueryResult]

@@ -33,14 +33,6 @@ def extract_text_from_filepath(filepath: str, mimetype: Optional[str] = None) ->
         if filepath.endswith(".md"):
             mimetype = "text/markdown"
         else: 
-
-            # # 模型路径下必须含有model和params文件，如果没有，现在可以自动下载了，不过是最简单的模型
-            # # use_gpu 如果paddle是GPU版本请设置为 True
-            # ocr = PaddleOCR(use_angle_cls=True, use_gpu=False) 
-            # result = ocr.ocr(filepath, cls=True)
-            # for line in result:
-            #     print(line) 
-
             raise Exception("Unsupported file type")
 
     # Open the file in binary mode
